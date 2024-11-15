@@ -97,7 +97,6 @@ export function LanguagePopover({ data = [], sx, ...other }: LanguagePopoverProp
               selected={option.value === currentLang?.value}
               onClick={() => handleChangeLang(option.value)}
             >
-              {renderFlag(option.label, option.icon)}
               {option.label}
             </MenuItem>
           ))}

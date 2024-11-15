@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -9,9 +9,9 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
-import { _users } from 'src/_mock';
+// import { _users } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
-
+import axios from 'axios';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
@@ -23,16 +23,31 @@ import { UserTableToolbar } from '../user-table-toolbar';
 import { emptyRows, applyFilter, getComparator } from '../utils';
 
 import type { UserProps } from '../user-table-row';
+import AddDraw from '../drawer-add';
+import AddUser from '../user-add';
+
 
 // ----------------------------------------------------------------------
 
 export function UserView() {
   const table = useTable();
 
+  
   const [filterName, setFilterName] = useState('');
+  const [users,setUsers] = useState<[]>([])
+  const [drawOpen, setDrawOpen] = useState<boolean>(false)  
+
+  const toggleDrawer = () => setDrawOpen(!drawOpen)
+  useEffect(()=>{
+    const dta = async()=>{
+      const data = await axios.get('http://localhost:3001/users')
+      setUsers(data.data)
+    }
+    dta();
+  },[drawOpen])
 
   const dataFiltered: UserProps[] = applyFilter({
-    inputData: _users,
+    inputData: users,
     comparator: getComparator(table.order, table.orderBy),
     filterName,
   });
@@ -43,14 +58,15 @@ export function UserView() {
     <DashboardContent>
       <Box display="flex" alignItems="center" mb={5}>
         <Typography variant="h4" flexGrow={1}>
-          Users
+          Usuarios
         </Typography>
         <Button
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
+          onClick={toggleDrawer}
         >
-          New user
+          Nuevo Usuario
         </Button>
       </Box>
 
@@ -70,21 +86,24 @@ export function UserView() {
               <UserTableHead
                 order={table.order}
                 orderBy={table.orderBy}
-                rowCount={_users.length}
+                rowCount={users.length}
                 numSelected={table.selected.length}
                 onSort={table.onSort}
                 onSelectAllRows={(checked) =>
                   table.onSelectAllRows(
                     checked,
-                    _users.map((user) => user.id)
+                    users.map((user:any) => user._id)
                   )
                 }
                 headLabel={[
-                  { id: 'name', label: 'Name' },
-                  { id: 'company', label: 'Company' },
-                  { id: 'role', label: 'Role' },
-                  { id: 'isVerified', label: 'Verified', align: 'center' },
-                  { id: 'status', label: 'Status' },
+                  { id: 'name', label: 'Nombre' },
+                  { id: 'lastName', label: 'Apellidos' },
+                  { id: 'ci', label: 'Ci' },
+                  { id: 'email', label: 'Correo' },
+                  { id: 'gender', label: 'Genero'},
+                  { id: 'phone', label: 'Telefono' },
+                  { id: 'address', label: 'Direccion' },
+                  { id: 'contry', label: 'Pais' },
                   { id: '' },
                 ]}
               />
@@ -105,7 +124,7 @@ export function UserView() {
 
                 <TableEmptyRows
                   height={68}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
+                  emptyRows={emptyRows(table.page, table.rowsPerPage, users.length)}
                 />
 
                 {notFound && <TableNoData searchQuery={filterName} />}
@@ -117,13 +136,16 @@ export function UserView() {
         <TablePagination
           component="div"
           page={table.page}
-          count={_users.length}
+          count={users.length}
           rowsPerPage={table.rowsPerPage}
           onPageChange={table.onChangePage}
           rowsPerPageOptions={[5, 10, 25]}
           onRowsPerPageChange={table.onChangeRowsPerPage}
         />
       </Card>
+      <AddDraw open={drawOpen} toggle={toggleDrawer} title='Registro del usuario'>
+        <AddUser toggle={toggleDrawer}/>
+      </AddDraw>
     </DashboardContent>
   );
 }
